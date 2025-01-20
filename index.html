@@ -62,14 +62,6 @@
             animation: pulse 1.5s infinite;
         }
 
-        .debug-info {
-            margin-top: 1rem;
-            font-family: monospace;
-            font-size: 0.8rem;
-            color: #888;
-            word-break: break-all;
-        }
-
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.5; }
@@ -91,7 +83,6 @@
             <span><span class="charging-indicator" id="chargingIndicator"></span> <span id="chargingStatus">Unknown</span></span>
             <span id="batteryPercentage">-%</span>
         </div>
-        <div class="debug-info" id="debugInfo"></div>
     </div>
 
     <script>
@@ -99,70 +90,33 @@
         const batteryPercentage = document.getElementById('batteryPercentage');
         const chargingStatus = document.getElementById('chargingStatus');
         const chargingIndicator = document.getElementById('chargingIndicator');
-        const debugInfo = document.getElementById('debugInfo');
 
         function updateBatteryUI(battery) {
-            // Debug output of raw battery object
-            const debugData = {
-                level: battery.level,
-                charging: battery.charging,
-                chargingTime: battery.chargingTime,
-                dischargingTime: battery.dischargingTime,
-                userAgent: navigator.userAgent
-            };
-            debugInfo.textContent = JSON.stringify(debugData, null, 2);
-
-            // Validate battery level
-            let level = battery.level;
-            if (typeof level !== 'number' || isNaN(level) || level < 0 || level > 1) {
-                console.warn('Invalid battery level:', level);
-                level = 0;
-            }
-
-            const percentage = level * 100;
-            batteryLevel.style.width = `${percentage}%`;
-            batteryPercentage.textContent = `${Math.round(percentage)}%`;
+            const level = battery.level * 100;
+            batteryLevel.style.width = `${level}%`;
+            batteryPercentage.textContent = `${Math.round(level)}%`;
             
             chargingStatus.textContent = battery.charging ? 'Charging' : 'Not charging';
             chargingIndicator.classList.toggle('charging', battery.charging);
             
-            if (percentage <= 20 && !battery.charging) {
+            if (level <= 20 && !battery.charging) {
                 batteryLevel.classList.add('low-battery');
             } else {
                 batteryLevel.classList.remove('low-battery');
             }
         }
 
-        async function initBattery() {
-            try {
-                if (!navigator.getBattery) {
-                    throw new Error('Battery API not available');
-                }
-
-                const battery = await navigator.getBattery();
-                console.log('Battery object:', battery);
-
-                // Initial update
+        if (navigator.getBattery) {
+            navigator.getBattery().then(battery => {
                 updateBatteryUI(battery);
                 
-                // Setup listeners
-                battery.addEventListener('levelchange', () => {
-                    console.log('Level changed:', battery.level);
-                    updateBatteryUI(battery);
-                });
-                battery.addEventListener('chargingchange', () => {
-                    console.log('Charging changed:', battery.charging);
-                    updateBatteryUI(battery);
-                });
-            } catch (error) {
-                console.error('Battery API error:', error);
-                batteryPercentage.textContent = 'Error';
-                chargingStatus.textContent = error.message;
-                debugInfo.textContent = `Error: ${error.message}\nUser Agent: ${navigator.userAgent}`;
-            }
+                battery.addEventListener('levelchange', () => updateBatteryUI(battery));
+                battery.addEventListener('chargingchange', () => updateBatteryUI(battery));
+            });
+        } else {
+            batteryPercentage.textContent = 'Not supported';
+            chargingStatus.textContent = 'Battery API not supported';
         }
-
-        initBattery();
     </script>
 </body>
 </html>
