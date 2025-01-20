@@ -2,7 +2,7 @@
 
 A clean, minimalist web application that displays real-time battery information for devices supporting the Battery Status API. Built with vanilla JavaScript and CSS.
 
-Online Demo: https://steveseeguin.github.io/charging
+Online Demo: https://steveseguin.github.io/charging/
 
 ![Preview](https://github.com/user-attachments/assets/95642ac9-05b2-43e2-8c1e-c2c132b1150a)
 
