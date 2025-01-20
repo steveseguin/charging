@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battery Monitor</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .battery-container {
+            background-color: #2d2d2d;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            width: 300px;
+        }
+
+        .battery-visual {
+            background-color: #3d3d3d;
+            border: 2px solid #4d4d4d;
+            border-radius: 0.5rem;
+            height: 40px;
+            position: relative;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+
+        .battery-level {
+            background-color: #4CAF50;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+
+        .battery-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .charging-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            background-color: #666;
+        }
+
+        .charging {
+            background-color: #4CAF50;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .low-battery {
+            background-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="battery-container">
+        <h2>Battery Status</h2>
+        <div class="battery-visual">
+            <div class="battery-level" id="batteryLevel"></div>
+        </div>
+        <div class="battery-info">
+            <span><span class="charging-indicator" id="chargingIndicator"></span> <span id="chargingStatus">Unknown</span></span>
+            <span id="batteryPercentage">-%</span>
+        </div>
+    </div>
+
+    <script>
+        const batteryLevel = document.getElementById('batteryLevel');
+        const batteryPercentage = document.getElementById('batteryPercentage');
+        const chargingStatus = document.getElementById('chargingStatus');
+        const chargingIndicator = document.getElementById('chargingIndicator');
+
+        function updateBatteryUI(battery) {
+            const level = battery.level * 100;
+            batteryLevel.style.width = `${level}%`;
+            batteryPercentage.textContent = `${Math.round(level)}%`;
+            
+            chargingStatus.textContent = battery.charging ? 'Charging' : 'Not charging';
+            chargingIndicator.classList.toggle('charging', battery.charging);
+            
+            if (level <= 20 && !battery.charging) {
+                batteryLevel.classList.add('low-battery');
+            } else {
+                batteryLevel.classList.remove('low-battery');
+            }
+        }
+
+        if (navigator.getBattery) {
+            navigator.getBattery().then(battery => {
+                updateBatteryUI(battery);
+                
+                battery.addEventListener('levelchange', () => updateBatteryUI(battery));
+                battery.addEventListener('chargingchange', () => updateBatteryUI(battery));
+            });
+        } else {
+            batteryPercentage.textContent = 'Not supported';
+            chargingStatus.textContent = 'Battery API not supported';
+        }
+    </script>
+</body>
+</html>
